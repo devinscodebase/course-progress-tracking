@@ -23,7 +23,8 @@ export const Metadata = {
   
   getNextLessonLink(lessonKey) {
     const button = document.querySelector(`[ms-code-mark-complete="${lessonKey}"]`);
-    const slug = button?.getAttribute('data-next-lesson-slug')?.trim();
+    const slug = button?.getAttribute('data-next-lesson-link')?.trim(); // Changed from data-next-lesson-slug
     return slug ? `https://giannisandreou.com/lessons/${slug}` : '';
   }
 };
+
