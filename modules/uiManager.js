@@ -93,7 +93,12 @@ export const UIManager = {
       el.classList.add('yes');
       
       if (el.classList.contains('button') || el.tagName === 'A') {
-        el.textContent = 'Ολοκληρώθηκε';
+        let textContainer = el.querySelector('div');
+        if (textContainer) {
+          textContainer.textContent = 'Ολοκληρώθηκε';
+        } else {
+          el.textContent = 'Ολοκληρώθηκε';
+        }
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
       }
@@ -117,7 +122,12 @@ export const UIManager = {
       el.classList.remove('yes');
       
       if (el.classList.contains('button') || el.tagName === 'A') {
-        el.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+        let textContainer = el.querySelector('div');
+        if (textContainer) {
+          textContainer.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+        } else {
+          el.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+        }
         el.style.backgroundColor = '';
         el.style.color = '';
       }
