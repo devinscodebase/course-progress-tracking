@@ -1,27 +1,31 @@
-import { Config } from './modules/config.js';
 import { Storage } from './modules/storage.js';
-import { LessonTracker } from './modules/lessonTracker.js';
 import { UIManager } from './modules/uiManager.js';
+import { LessonTracker } from './modules/lessonTracker.js';
+import { Webhooks } from './modules/webhooks.js';
 import { BadgeSystem } from './modules/badgeSystem.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-  console.log(`🚀 Course Progress System v${Config.version}`);
-  
-  const memberstack = window.$memberstackDom;
-  
-  if (!memberstack) {
-    console.error('❌ Memberstack not found');
-    return;
-  }
-  
+console.log('🚀 Course Progress System v2.0.0');
+
+async function init() {
   try {
-    await Storage.init(memberstack);
-    LessonTracker.init(memberstack);
+    // Initialize UI manager
     UIManager.init();
+    
+    // Render existing progress from Memberstack
+    await UIManager.renderExistingProgress();
+    
+    // Initialize other modules
+    LessonTracker.init();
     BadgeSystem.init();
     
     console.log('✅ System ready');
   } catch (error) {
-    console.error('❌ Init failed:', error);
+    console.error('❌ Initialization failed:', error);
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
