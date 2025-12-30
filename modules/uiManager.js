@@ -97,7 +97,7 @@ export const UIManager = {
         if (textContainer) {
           textContainer.textContent = 'Ολοκληρώθηκε';
         } else {
-          el.textContent = 'Ολοκληρώθηκε';
+          el.innerHTML = '<div>Ολοκληρώθηκε</div>';
         }
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
@@ -126,7 +126,7 @@ export const UIManager = {
         if (textContainer) {
           textContainer.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
         } else {
-          el.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+          el.innerHTML = '<div>ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ</div>';
         }
         el.style.backgroundColor = '';
         el.style.color = '';
