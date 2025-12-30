@@ -86,21 +86,21 @@ export const UIManager = {
     console.log(`🎯 Found ${allElements.length} elements for ${lessonKey}`);
     
     allElements.forEach(el => {
-      console.log('Element:', el.tagName, el.className);
       el.classList.add('yes');
-      
-      if (el.tagName === 'A') {
-        const div = el.querySelector('div') || document.createElement('div');
-        div.textContent = 'Ολοκληρώθηκε';
-        if (!div.parentElement) el.appendChild(div);
-        el.style.backgroundColor = '#6c4cf9';
-        el.style.color = 'white';
-        console.log('✅ Button text updated');
-      }
-      
       const checkbox = el.querySelector('.chapter-menu_check');
       if (checkbox) checkbox.classList.add('yes');
     });
+    
+    const mainButton = document.getElementById('main-completion-button');
+    if (mainButton && mainButton.getAttribute('ms-code-mark-complete')?.toLowerCase() === lessonKey.toLowerCase()) {
+      const div = mainButton.querySelector('div') || document.createElement('div');
+      div.textContent = 'Ολοκληρώθηκε';
+      if (!div.parentElement) mainButton.appendChild(div);
+      mainButton.style.backgroundColor = '#6c4cf9';
+      mainButton.style.color = 'white';
+      mainButton.classList.add('yes');
+      console.log('✅ Main button updated');
+    }
   },
 
   markLessonIncomplete(lessonKey) {
@@ -111,18 +111,19 @@ export const UIManager = {
     
     allElements.forEach(el => {
       el.classList.remove('yes');
-      
-      if (el.tagName === 'A') {
-        const div = el.querySelector('div') || document.createElement('div');
-        div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
-        if (!div.parentElement) el.appendChild(div);
-        el.style.backgroundColor = '';
-        el.style.color = '';
-      }
-      
       const checkbox = el.querySelector('.chapter-menu_check');
       if (checkbox) checkbox.classList.remove('yes');
     });
+    
+    const mainButton = document.getElementById('main-completion-button');
+    if (mainButton && mainButton.getAttribute('ms-code-mark-complete')?.toLowerCase() === lessonKey.toLowerCase()) {
+      const div = mainButton.querySelector('div') || document.createElement('div');
+      div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+      if (!div.parentElement) mainButton.appendChild(div);
+      mainButton.style.backgroundColor = '';
+      mainButton.style.color = '';
+      mainButton.classList.remove('yes');
+    }
   },
 
   updateAllProgress(data) {
