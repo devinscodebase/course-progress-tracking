@@ -78,31 +78,22 @@ export const UIManager = {
   },
 
   markLessonComplete(lessonKey) {
-    let elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    const allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
     
-    if (elements.length === 0) {
-      const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
-      elements = Array.from(allButtons).filter(btn => 
-        btn.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-      );
-    }
+    console.log(`🎯 Found ${allElements.length} elements for ${lessonKey}`);
     
-    console.log(`🎯 Found ${elements.length} elements for ${lessonKey}`);
-    
-    elements.forEach(el => {
-      console.log('Element:', el.tagName, el.classList.toString());
+    allElements.forEach(el => {
+      console.log('Element:', el.tagName, el.className);
       el.classList.add('yes');
       
-      if (el.classList.contains('button') || el.tagName === 'A') {
+      if (el.tagName === 'A' && el.classList.contains('button')) {
         let textContainer = el.querySelector('div');
-        console.log('Text container:', textContainer, 'Current text:', textContainer?.textContent);
+        console.log('BUTTON found! Div:', textContainer);
         
         if (textContainer) {
           textContainer.textContent = 'Ολοκληρώθηκε';
-          console.log('Set text to:', textContainer.textContent);
         } else {
           el.innerHTML = '<div>Ολοκληρώθηκε</div>';
-          console.log('Created new div');
         }
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
@@ -114,19 +105,12 @@ export const UIManager = {
   },
 
   markLessonIncomplete(lessonKey) {
-    let elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    const allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
     
-    if (elements.length === 0) {
-      const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
-      elements = Array.from(allButtons).filter(btn => 
-        btn.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-      );
-    }
-    
-    elements.forEach(el => {
+    allElements.forEach(el => {
       el.classList.remove('yes');
       
-      if (el.classList.contains('button') || el.tagName === 'A') {
+      if (el.tagName === 'A' && el.classList.contains('button')) {
         let textContainer = el.querySelector('div');
         if (textContainer) {
           textContainer.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
