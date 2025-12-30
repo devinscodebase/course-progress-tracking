@@ -3,44 +3,29 @@ import { EventBus } from './eventBus.js';
 
 export const UIManager = {
   init() {
-    console.log('🎨 UIManager.init()');
     this.setupClickHandlers();
   },
 
   async renderExistingProgress() {
-    console.log('📊 renderExistingProgress() started');
     const data = await Storage.getLessonProgress();
-    console.log('📦 Loaded data:', data);
-    console.log('📦 Data keys:', Object.keys(data || {}));
-    
-    let totalMarked = 0;
     
     Object.keys(data || {}).forEach(courseKey => {
       const course = data[courseKey];
-      console.log(`🔍 Checking ${courseKey}:`, typeof course, course);
-      
-      if (!course || typeof course !== 'object' || Array.isArray(course)) {
-        console.log(`⏭️ Skipping ${courseKey}`);
-        return;
-      }
+      if (!course || typeof course !== 'object' || Array.isArray(course)) return;
       
       Object.keys(course).forEach(moduleKey => {
         const module = course[moduleKey];
         if (!module || typeof module !== 'object' || Array.isArray(module)) return;
         
         Object.keys(module).forEach(lessonKey => {
-          const lessonData = module[lessonKey];
-          if (Storage.isLessonComplete(lessonData)) {
+          if (Storage.isLessonComplete(module[lessonKey])) {
             const fullKey = `${courseKey}-${moduleKey}-${lessonKey}`;
-            console.log(`✅ Marking: ${fullKey}`);
             this.markLessonComplete(fullKey);
-            totalMarked++;
           }
         });
       });
     });
 
-    console.log(`✅ Total marked: ${totalMarked}`);
     this.updateAllProgress(data);
   },
 
@@ -53,13 +38,7 @@ export const UIManager = {
       const lessonKey = button.getAttribute('ms-code-mark-complete');
       const isComplete = button.classList.contains('yes');
       
-      console.log(`🖱️ Click: ${lessonKey} (${isComplete ? 'complete' : 'incomplete'})`);
-      
-      if (isComplete) {
-        await this.toggleLesson(lessonKey, false);
-      } else {
-        await this.toggleLesson(lessonKey, true);
-      }
+      await this.toggleLesson(lessonKey, !isComplete);
     });
   },
 
@@ -71,6 +50,7 @@ export const UIManager = {
       EventBus.emit('lesson:completed', { lessonKey });
     } else {
       this.markLessonIncomplete(lessonKey);
+      EventBus.emit('lesson:incompleted', { lessonKey });
     }
     
     const data = await Storage.getLessonProgress();
@@ -79,51 +59,48 @@ export const UIManager = {
 
   markLessonComplete(lessonKey) {
     const all = document.querySelectorAll('[ms-code-mark-complete]');
-    const allElements = Array.from(all).filter(el => 
-      el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-    );
-    
-    console.log(`🎯 Found ${allElements.length} elements for ${lessonKey}`);
-    
-    allElements.forEach(el => {
-      el.classList.add('yes');
-      const checkbox = el.querySelector('.chapter-menu_check');
-      if (checkbox) checkbox.classList.add('yes');
+    Array.from(all).forEach(el => {
+      if (el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()) {
+        el.classList.add('yes');
+        
+        if (el.id === 'main-completion-button') {
+          let div = el.querySelector('div');
+          if (!div) {
+            div = document.createElement('div');
+            el.appendChild(div);
+          }
+          div.textContent = 'Ολοκληρώθηκε';
+          el.style.backgroundColor = '#6c4cf9';
+          el.style.color = 'white';
+        }
+        
+        const checkbox = el.querySelector('.chapter-menu_check');
+        if (checkbox) checkbox.classList.add('yes');
+      }
     });
-    
-    const mainButton = document.getElementById('main-completion-button');
-    if (mainButton && mainButton.getAttribute('ms-code-mark-complete')?.toLowerCase() === lessonKey.toLowerCase()) {
-      const div = mainButton.querySelector('div') || document.createElement('div');
-      div.textContent = 'Ολοκληρώθηκε';
-      if (!div.parentElement) mainButton.appendChild(div);
-      mainButton.style.backgroundColor = '#6c4cf9';
-      mainButton.style.color = 'white';
-      mainButton.classList.add('yes');
-      console.log('✅ Main button updated');
-    }
   },
 
   markLessonIncomplete(lessonKey) {
     const all = document.querySelectorAll('[ms-code-mark-complete]');
-    const allElements = Array.from(all).filter(el => 
-      el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-    );
-    
-    allElements.forEach(el => {
-      el.classList.remove('yes');
-      const checkbox = el.querySelector('.chapter-menu_check');
-      if (checkbox) checkbox.classList.remove('yes');
+    Array.from(all).forEach(el => {
+      if (el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()) {
+        el.classList.remove('yes');
+        
+        if (el.id === 'main-completion-button') {
+          let div = el.querySelector('div');
+          if (!div) {
+            div = document.createElement('div');
+            el.appendChild(div);
+          }
+          div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+          el.style.backgroundColor = '';
+          el.style.color = '';
+        }
+        
+        const checkbox = el.querySelector('.chapter-menu_check');
+        if (checkbox) checkbox.classList.remove('yes');
+      }
     });
-    
-    const mainButton = document.getElementById('main-completion-button');
-    if (mainButton && mainButton.getAttribute('ms-code-mark-complete')?.toLowerCase() === lessonKey.toLowerCase()) {
-      const div = mainButton.querySelector('div') || document.createElement('div');
-      div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
-      if (!div.parentElement) mainButton.appendChild(div);
-      mainButton.style.backgroundColor = '';
-      mainButton.style.color = '';
-      mainButton.classList.remove('yes');
-    }
   },
 
   updateAllProgress(data) {
@@ -134,9 +111,7 @@ export const UIManager = {
       if (key) courseKeys.add(key.split('-')[0].toLowerCase());
     });
 
-    courseKeys.forEach(courseKey => {
-      this.updateProgressBar(courseKey, data);
-    });
+    courseKeys.forEach(courseKey => this.updateProgressBar(courseKey, data));
   },
 
   updateProgressBar(courseKey, data) {
@@ -158,7 +133,6 @@ export const UIManager = {
     ).length;
     
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-    console.log(`📈 ${courseKey}: ${completed}/${total} = ${progress}%`);
 
     const progressBar = document.querySelector('[data-ms-code="progress-bar"]');
     if (progressBar) progressBar.style.width = progress + '%';
