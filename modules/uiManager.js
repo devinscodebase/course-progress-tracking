@@ -78,7 +78,14 @@ export const UIManager = {
   },
 
   markLessonComplete(lessonKey) {
-    const allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    let allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    
+    if (allElements.length === 0) {
+      const all = document.querySelectorAll('[ms-code-mark-complete]');
+      allElements = Array.from(all).filter(el => 
+        el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+      );
+    }
     
     console.log(`🎯 Found ${allElements.length} elements for ${lessonKey}`);
     
@@ -88,8 +95,6 @@ export const UIManager = {
       
       if (el.tagName === 'A' && el.classList.contains('button')) {
         let textContainer = el.querySelector('div');
-        console.log('BUTTON found! Div:', textContainer);
-        
         if (textContainer) {
           textContainer.textContent = 'Ολοκληρώθηκε';
         } else {
@@ -105,7 +110,14 @@ export const UIManager = {
   },
 
   markLessonIncomplete(lessonKey) {
-    const allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    let allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    
+    if (allElements.length === 0) {
+      const all = document.querySelectorAll('[ms-code-mark-complete]');
+      allElements = Array.from(all).filter(el => 
+        el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+      );
+    }
     
     allElements.forEach(el => {
       el.classList.remove('yes');
