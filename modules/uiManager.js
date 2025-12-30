@@ -90,14 +90,19 @@ export const UIManager = {
     console.log(`🎯 Found ${elements.length} elements for ${lessonKey}`);
     
     elements.forEach(el => {
+      console.log('Element:', el.tagName, el.classList.toString());
       el.classList.add('yes');
       
       if (el.classList.contains('button') || el.tagName === 'A') {
         let textContainer = el.querySelector('div');
+        console.log('Text container:', textContainer, 'Current text:', textContainer?.textContent);
+        
         if (textContainer) {
           textContainer.textContent = 'Ολοκληρώθηκε';
+          console.log('Set text to:', textContainer.textContent);
         } else {
           el.innerHTML = '<div>Ολοκληρώθηκε</div>';
+          console.log('Created new div');
         }
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
