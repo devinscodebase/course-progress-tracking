@@ -3,42 +3,44 @@ import { EventBus } from './eventBus.js';
 
 export const UIManager = {
   init() {
+    console.log('🎨 UIManager.init()');
     this.setupClickHandlers();
   },
 
   async renderExistingProgress() {
-    console.log('📊 Rendering existing progress...');
+    console.log('📊 renderExistingProgress() started');
     const data = await Storage.getLessonProgress();
     console.log('📦 Loaded data:', data);
+    console.log('📦 Data keys:', Object.keys(data || {}));
     
-    let markedCount = 0;
+    let totalMarked = 0;
     
-    // Mark all completed lessons
     Object.keys(data || {}).forEach(courseKey => {
       const course = data[courseKey];
-      if (!course || typeof course !== 'object') return;
+      console.log(`🔍 Checking ${courseKey}:`, typeof course, course);
       
-      console.log(`📚 Processing ${courseKey}:`, course);
+      if (!course || typeof course !== 'object' || Array.isArray(course)) {
+        console.log(`⏭️ Skipping ${courseKey}`);
+        return;
+      }
       
       Object.keys(course).forEach(moduleKey => {
         const module = course[moduleKey];
-        if (!module || typeof module !== 'object') return;
+        if (!module || typeof module !== 'object' || Array.isArray(module)) return;
         
         Object.keys(module).forEach(lessonKey => {
           const lessonData = module[lessonKey];
           if (Storage.isLessonComplete(lessonData)) {
             const fullKey = `${courseKey}-${moduleKey}-${lessonKey}`;
-            console.log(`✅ Marking complete: ${fullKey}`);
+            console.log(`✅ Marking: ${fullKey}`);
             this.markLessonComplete(fullKey);
-            markedCount++;
+            totalMarked++;
           }
         });
       });
     });
 
-    console.log(`✅ Marked ${markedCount} lessons complete`);
-
-    // Update progress bars
+    console.log(`✅ Total marked: ${totalMarked}`);
     this.updateAllProgress(data);
   },
 
@@ -51,7 +53,7 @@ export const UIManager = {
       const lessonKey = button.getAttribute('ms-code-mark-complete');
       const isComplete = button.classList.contains('yes');
       
-      console.log(`🖱️ Clicked: ${lessonKey}, currently: ${isComplete ? 'complete' : 'incomplete'}`);
+      console.log(`🖱️ Click: ${lessonKey} (${isComplete ? 'complete' : 'incomplete'})`);
       
       if (isComplete) {
         await this.toggleLesson(lessonKey, false);
@@ -76,27 +78,42 @@ export const UIManager = {
   },
 
   markLessonComplete(lessonKey) {
-    const elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    let elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    
+    if (elements.length === 0) {
+      const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
+      elements = Array.from(allButtons).filter(btn => 
+        btn.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+      );
+    }
+    
     console.log(`🎯 Found ${elements.length} elements for ${lessonKey}`);
     
     elements.forEach(el => {
       el.classList.add('yes');
       
-      // Update button text if it's a button
       if (el.classList.contains('button') || el.tagName === 'A') {
         el.textContent = 'Ολοκληρώθηκε';
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
       }
       
-      // Update checkbox
       const checkbox = el.querySelector('.chapter-menu_check');
       if (checkbox) checkbox.classList.add('yes');
     });
   },
 
   markLessonIncomplete(lessonKey) {
-    document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`).forEach(el => {
+    let elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    
+    if (elements.length === 0) {
+      const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
+      elements = Array.from(allButtons).filter(btn => 
+        btn.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+      );
+    }
+    
+    elements.forEach(el => {
       el.classList.remove('yes');
       
       if (el.classList.contains('button') || el.tagName === 'A') {
@@ -115,7 +132,7 @@ export const UIManager = {
     const courseKeys = new Set();
     allButtons.forEach(btn => {
       const key = btn.getAttribute('ms-code-mark-complete');
-      if (key) courseKeys.add(key.split('-')[0]);
+      if (key) courseKeys.add(key.split('-')[0].toLowerCase());
     });
 
     courseKeys.forEach(courseKey => {
@@ -129,43 +146,32 @@ export const UIManager = {
     
     if (course) {
       Object.values(course).forEach(module => {
-        if (module && typeof module !== 'object') return;
+        if (!module || typeof module !== 'object' || Array.isArray(module)) return;
         Object.values(module).forEach(lesson => {
           if (Storage.isLessonComplete(lesson)) completed++;
         });
       });
     }
 
-    // Count total lessons for this course
-    const allButtons = document.querySelectorAll(`[ms-code-mark-complete^="${courseKey}-"]`);
-    const total = allButtons.length;
+    const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
+    const total = Array.from(allButtons).filter(btn => 
+      btn.getAttribute('ms-code-mark-complete').toLowerCase().startsWith(courseKey.toLowerCase() + '-')
+    ).length;
     
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    console.log(`📈 ${courseKey}: ${completed}/${total} = ${progress}%`);
 
-    console.log(`📈 ${courseKey}: ${completed}/${total} (${progress}%)`);
-
-    // Update progress bar
     const progressBar = document.querySelector('[data-ms-code="progress-bar"]');
-    if (progressBar) {
-      progressBar.style.width = progress + '%';
-    }
+    if (progressBar) progressBar.style.width = progress + '%';
 
-    // Update progress text
     const progressText = document.querySelector('[data-ms-code="progress-text"]');
-    if (progressText) {
-      progressText.textContent = `${completed} από τα ${total} ΜΑΘΗΜΑΤΑ ΟΛΟΚΛΗΡΩΜΕΝΑ`;
-    }
+    if (progressText) progressText.textContent = `${completed} από τα ${total} ΜΑΘΗΜΑΤΑ ΟΛΟΚΛΗΡΩΜΕΝΑ`;
 
-    // Update badge text
     const badgeText = document.querySelector('[data-ms-code="badge-text"]');
     if (badgeText) {
-      if (progress === 0) {
-        badgeText.textContent = 'Δεν ξεκίνησε';
-      } else if (progress === 100) {
-        badgeText.textContent = 'Το μάθημα ολοκληρώθηκε!';
-      } else {
-        badgeText.textContent = `${progress}% Complete`;
-      }
+      if (progress === 0) badgeText.textContent = 'Δεν ξεκίνησε';
+      else if (progress === 100) badgeText.textContent = 'Το μάθημα ολοκληρώθηκε!';
+      else badgeText.textContent = `${progress}% Complete`;
     }
   }
 };
