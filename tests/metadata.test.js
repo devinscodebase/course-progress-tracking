@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { Metadata } from '../modules/metadata.js';
 
 describe('Metadata', () => {
@@ -13,7 +13,7 @@ describe('Metadata', () => {
 
   it('should get next lesson title from button', () => {
     document.body.innerHTML = `
-      <a ms-code-mark-complete="Course1-module1-lesson2" data-lesson-title="Next Lesson"></a>
+      <a ms-code-mark-complete="Course1-module1-lesson1" data-next-lesson-title="Next Lesson"></a>
     `;
 
     const nextTitle = Metadata.getNextLessonTitle('Course1-module1-lesson1');
@@ -22,6 +22,15 @@ describe('Metadata', () => {
 
   it('should fallback to generic next lesson title', () => {
     const nextTitle = Metadata.getNextLessonTitle('Course1-module1-lesson5');
-    expect(nextTitle).toBe('Μάθημα 6');
+    expect(nextTitle).toBe('Επόμενο Μάθημα');
+  });
+
+  it('should build full next lesson link from slug', () => {
+    document.body.innerHTML = `
+      <a ms-code-mark-complete="Course1-module1-lesson1" data-next-lesson-slug="lesson-2"></a>
+    `;
+
+    const nextLink = Metadata.getNextLessonLink('Course1-module1-lesson1');
+    expect(nextLink).toBe('https://giannisandreou.com/lessons/lesson-2');
   });
 });
