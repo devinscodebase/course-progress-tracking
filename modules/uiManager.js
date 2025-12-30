@@ -4,6 +4,21 @@ import { EventBus } from './eventBus.js';
 export const UIManager = {
   init() {
     this.setupClickHandlers();
+    this.initializeButtonText();
+  },
+
+  initializeButtonText() {
+    const mainButton = document.getElementById('main-completion-button');
+    if (mainButton && !mainButton.classList.contains('yes')) {
+      let div = mainButton.querySelector('div');
+      if (!div) {
+        div = document.createElement('div');
+        mainButton.appendChild(div);
+      }
+      if (!div.textContent || div.textContent.trim() === '') {
+        div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+      }
+    }
   },
 
   async renderExistingProgress() {
