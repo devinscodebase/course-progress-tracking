@@ -1,0 +1,26 @@
+{
+  "name": "course-progress",
+  "version": "1.0.0",
+  "description": "Modular lesson tracking system for Webflow + Memberstack with Zapier integration.",
+  "main": "init.js",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devinscodebase/course-progress-tracking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/devinscodebase/course-progress-tracking/issues"
+  },
+  "homepage": "https://github.com/devinscodebase/course-progress-tracking#readme",
+  "devDependencies": {
+    "jsdom": "^27.4.0",
+    "vitest": "^4.0.16"
+  }
+}
