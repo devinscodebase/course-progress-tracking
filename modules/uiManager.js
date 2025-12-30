@@ -7,12 +7,18 @@ export const UIManager = {
   },
 
   async renderExistingProgress() {
+    console.log('📊 Rendering existing progress...');
     const data = await Storage.getLessonProgress();
+    console.log('📦 Loaded data:', data);
+    
+    let markedCount = 0;
     
     // Mark all completed lessons
     Object.keys(data || {}).forEach(courseKey => {
       const course = data[courseKey];
       if (!course || typeof course !== 'object') return;
+      
+      console.log(`📚 Processing ${courseKey}:`, course);
       
       Object.keys(course).forEach(moduleKey => {
         const module = course[moduleKey];
@@ -22,11 +28,15 @@ export const UIManager = {
           const lessonData = module[lessonKey];
           if (Storage.isLessonComplete(lessonData)) {
             const fullKey = `${courseKey}-${moduleKey}-${lessonKey}`;
+            console.log(`✅ Marking complete: ${fullKey}`);
             this.markLessonComplete(fullKey);
+            markedCount++;
           }
         });
       });
     });
+
+    console.log(`✅ Marked ${markedCount} lessons complete`);
 
     // Update progress bars
     this.updateAllProgress(data);
@@ -40,6 +50,8 @@ export const UIManager = {
       e.preventDefault();
       const lessonKey = button.getAttribute('ms-code-mark-complete');
       const isComplete = button.classList.contains('yes');
+      
+      console.log(`🖱️ Clicked: ${lessonKey}, currently: ${isComplete ? 'complete' : 'incomplete'}`);
       
       if (isComplete) {
         await this.toggleLesson(lessonKey, false);
@@ -64,7 +76,10 @@ export const UIManager = {
   },
 
   markLessonComplete(lessonKey) {
-    document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`).forEach(el => {
+    const elements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
+    console.log(`🎯 Found ${elements.length} elements for ${lessonKey}`);
+    
+    elements.forEach(el => {
       el.classList.add('yes');
       
       // Update button text if it's a button
@@ -114,11 +129,10 @@ export const UIManager = {
     
     if (course) {
       Object.values(course).forEach(module => {
-        if (module && typeof module === 'object') {
-          Object.values(module).forEach(lesson => {
-            if (Storage.isLessonComplete(lesson)) completed++;
-          });
-        }
+        if (module && typeof module !== 'object') return;
+        Object.values(module).forEach(lesson => {
+          if (Storage.isLessonComplete(lesson)) completed++;
+        });
       });
     }
 
@@ -127,6 +141,8 @@ export const UIManager = {
     const total = allButtons.length;
     
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    console.log(`📈 ${courseKey}: ${completed}/${total} (${progress}%)`);
 
     // Update progress bar
     const progressBar = document.querySelector('[data-ms-code="progress-bar"]');
