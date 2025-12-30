@@ -78,14 +78,10 @@ export const UIManager = {
   },
 
   markLessonComplete(lessonKey) {
-    let allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
-    
-    if (allElements.length === 0) {
-      const all = document.querySelectorAll('[ms-code-mark-complete]');
-      allElements = Array.from(all).filter(el => 
-        el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-      );
-    }
+    const all = document.querySelectorAll('[ms-code-mark-complete]');
+    const allElements = Array.from(all).filter(el => 
+      el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+    );
     
     console.log(`🎯 Found ${allElements.length} elements for ${lessonKey}`);
     
@@ -93,15 +89,13 @@ export const UIManager = {
       console.log('Element:', el.tagName, el.className);
       el.classList.add('yes');
       
-      if (el.tagName === 'A' && el.classList.contains('button')) {
-        let textContainer = el.querySelector('div');
-        if (textContainer) {
-          textContainer.textContent = 'Ολοκληρώθηκε';
-        } else {
-          el.innerHTML = '<div>Ολοκληρώθηκε</div>';
-        }
+      if (el.tagName === 'A') {
+        const div = el.querySelector('div') || document.createElement('div');
+        div.textContent = 'Ολοκληρώθηκε';
+        if (!div.parentElement) el.appendChild(div);
         el.style.backgroundColor = '#6c4cf9';
         el.style.color = 'white';
+        console.log('✅ Button text updated');
       }
       
       const checkbox = el.querySelector('.chapter-menu_check');
@@ -110,25 +104,18 @@ export const UIManager = {
   },
 
   markLessonIncomplete(lessonKey) {
-    let allElements = document.querySelectorAll(`[ms-code-mark-complete="${lessonKey}"]`);
-    
-    if (allElements.length === 0) {
-      const all = document.querySelectorAll('[ms-code-mark-complete]');
-      allElements = Array.from(all).filter(el => 
-        el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
-      );
-    }
+    const all = document.querySelectorAll('[ms-code-mark-complete]');
+    const allElements = Array.from(all).filter(el => 
+      el.getAttribute('ms-code-mark-complete').toLowerCase() === lessonKey.toLowerCase()
+    );
     
     allElements.forEach(el => {
       el.classList.remove('yes');
       
-      if (el.tagName === 'A' && el.classList.contains('button')) {
-        let textContainer = el.querySelector('div');
-        if (textContainer) {
-          textContainer.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
-        } else {
-          el.innerHTML = '<div>ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ</div>';
-        }
+      if (el.tagName === 'A') {
+        const div = el.querySelector('div') || document.createElement('div');
+        div.textContent = 'ΟΛΟΚΛΗΡΩΣΕ ΤΟ ΜΑΘΗΜΑ';
+        if (!div.parentElement) el.appendChild(div);
         el.style.backgroundColor = '';
         el.style.color = '';
       }
