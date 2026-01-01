@@ -21,9 +21,9 @@ export const UIManager = {
         display: inline-block;
         width: 16px;
         height: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        border: 2px solid rgba(45, 0, 247, 0.2);
         border-radius: 50%;
-        border-top-color: #ffffff;
+        border-top-color: #2d00f7;
         animation: button-spin 0.6s linear infinite;
         margin-right: 8px;
         vertical-align: middle;
@@ -96,33 +96,27 @@ export const UIManager = {
       await Storage.saveLessonProgress(lessonKey, completed);
       console.log('✅ Saved to Memberstack');
       
-      // Small delay to ensure Memberstack persistence
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Get fresh data
       console.log('📊 Fetching fresh data...');
       const data = await Storage.getLessonProgress();
       console.log('📦 Fresh data:', data);
       
-      // Update UI
       if (completed) {
         this.markLessonComplete(lessonKey);
       } else {
         this.markLessonIncomplete(lessonKey);
       }
       
-      // Update progress
       console.log('📈 Updating progress...');
       this.updateAllProgress(data);
       
-      // Emit events for toast
       if (completed) {
         EventBus.emit('lesson:completed', { lessonKey });
       } else {
         EventBus.emit('lesson:incompleted', { lessonKey });
       }
       
-      // Send webhooks in background
       if (completed) {
         this.sendWebhooks(lessonKey).catch(err => console.error('Webhook error:', err));
       }
@@ -261,16 +255,12 @@ export const UIManager = {
     if (progressBar) {
       progressBar.style.width = progress + '%';
       console.log('✅ Progress bar updated');
-    } else {
-      console.warn('⚠️ Progress bar element not found');
     }
 
     const progressText = document.querySelector('[data-ms-code="progress-text"]');
     if (progressText) {
       progressText.textContent = `${completed} από τα ${total} ΜΑΘΗΜΑΤΑ ΟΛΟΚΛΗΡΩΜΕΝΑ`;
       console.log('✅ Progress text updated');
-    } else {
-      console.warn('⚠️ Progress text element not found');
     }
 
     const badgeText = document.querySelector('[data-ms-code="badge-text"]');
@@ -279,8 +269,6 @@ export const UIManager = {
       else if (progress === 100) badgeText.textContent = 'Το μάθημα ολοκληρώθηκε!';
       else badgeText.textContent = `${progress}% Complete`;
       console.log('✅ Badge text updated');
-    } else {
-      console.warn('⚠️ Badge text element not found');
     }
   }
 };
