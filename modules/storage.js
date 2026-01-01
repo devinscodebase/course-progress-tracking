@@ -1,65 +1,92 @@
+import CONFIG from './config.js';
+
 export const Storage = {
-  async getLessonProgress() {
+  cache: null,
+  cacheTimestamp: 0,
+  CACHE_TTL: 5000, // 5 seconds
+
+  async getMemberJSON() {
     try {
-      const member = await window.$memberstackDom.getMemberJSON();
-      return member.data || {};
+      const result = await window.$memberstackDom.getMemberJSON();
+      return result?.data || result || {};
     } catch (error) {
-      console.error('Error loading progress:', error);
+      console.error('Error fetching member JSON:', error);
       return {};
     }
   },
 
-  async saveLessonProgress(lessonKey, completed) {
+  async updateMemberJSON(json) {
     try {
-      const [course, module, lesson] = lessonKey.split('-');
-      const member = await window.$memberstackDom.getMemberJSON();
-      const data = member.data || {};
-      
-      const courseKey = course.toLowerCase();
-      if (!data[courseKey]) data[courseKey] = {};
-      if (!data[courseKey][module]) data[courseKey][module] = {};
-      
-      if (completed) {
-        data[courseKey][module][lesson] = {
-          completed: true,
-          completedAt: new Date().toISOString()
-        };
-      } else {
-        delete data[courseKey][module][lesson];
-        if (Object.keys(data[courseKey][module]).length === 0) delete data[courseKey][module];
-        if (Object.keys(data[courseKey]).length === 0) delete data[courseKey];
-      }
-      
-      await window.$memberstackDom.updateMemberJSON({ json: data });
-      return data;
+      await window.$memberstackDom.updateMemberJSON({ json });
+      // Invalidate cache after update
+      this.cache = null;
     } catch (error) {
-      console.error('Error saving progress:', error);
-      return null;
+      console.error('Error updating member JSON:', error);
+      throw error;
     }
   },
 
-  countCompletedLessons(courseId, data) {
-    const courseKey = courseId.toLowerCase();
-    const course = data?.[courseKey];
-    let count = 0;
+  // OPTIMIZATION #3: Cache getMemberJSON for rapid operations
+  async getLessonProgress() {
+    const now = Date.now();
     
-    if (course && typeof course === 'object' && !Array.isArray(course)) {
-      Object.values(course).forEach(module => {
-        if (module && typeof module === 'object' && !Array.isArray(module)) {
-          Object.values(module).forEach(lesson => {
-            if (this.isLessonComplete(lesson)) count++;
-          });
-        }
-      });
+    // Return cache if valid
+    if (this.cache && (now - this.cacheTimestamp) < this.CACHE_TTL) {
+      console.log('📦 Using Memberstack cache');
+      return this.cache;
     }
     
-    return count;
+    // Fetch fresh data
+    const data = await this.getMemberJSON();
+    this.cache = data.lessonProgress || {};
+    this.cacheTimestamp = now;
+    
+    return this.cache;
+  },
+
+  async saveLessonProgress(lessonKey, completed) {
+    const [course, module, lesson] = lessonKey.split('-');
+    
+    // Fetch current data
+    const allData = await this.getMemberJSON();
+    const lessonProgress = allData.lessonProgress || {};
+    
+    const courseKey = course.toLowerCase();
+    const moduleKey = module.toLowerCase();
+    const lessonKeyLower = lesson.toLowerCase();
+
+    if (!lessonProgress[courseKey]) {
+      lessonProgress[courseKey] = {};
+    }
+    if (!lessonProgress[courseKey][moduleKey]) {
+      lessonProgress[courseKey][moduleKey] = {};
+    }
+
+    if (completed) {
+      lessonProgress[courseKey][moduleKey][lessonKeyLower] = {
+        completed: true,
+        completedAt: new Date().toISOString()
+      };
+    } else {
+      delete lessonProgress[courseKey][moduleKey][lessonKeyLower];
+    }
+
+    allData.lessonProgress = lessonProgress;
+    
+    await this.updateMemberJSON(allData);
+    
+    // Update cache
+    this.cache = lessonProgress;
+    this.cacheTimestamp = Date.now();
+  },
+
+  async save(lessonProgress) {
+    const allData = await this.getMemberJSON();
+    allData.lessonProgress = lessonProgress;
+    await this.updateMemberJSON(allData);
   },
 
   isLessonComplete(lessonData) {
-    if (!lessonData) return false;
-    if (lessonData === true) return true;
-    if (typeof lessonData === 'object' && lessonData.completed === true) return true;
-    return false;
+    return lessonData && lessonData.completed === true;
   }
 };
