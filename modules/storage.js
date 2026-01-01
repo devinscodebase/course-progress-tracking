@@ -1,5 +1,3 @@
-import CONFIG from './config.js';
-
 export const Storage = {
   cache: null,
   cacheTimestamp: 0,

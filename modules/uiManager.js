@@ -1,5 +1,4 @@
 import { Storage } from './storage.js';
-import { LessonTracker } from './lessonTracker.js';
 import { EventBus } from './eventBus.js';
 
 export const UIManager = {
