@@ -5,16 +5,13 @@ import { Config } from './config.js';
 import { EventBus } from './eventBus.js';
 
 export const LessonTracker = {
-  memberstack: null,
-  
-  init(memberstackInstance) {
-    this.memberstack = memberstackInstance;
+  init() {
+    // Nothing to initialize
   },
   
   async markComplete(lessonKey) {
     const [course, module, lesson] = lessonKey.split('-');
     
-    // Use saveLessonProgress instead
     await Storage.saveLessonProgress(lessonKey, true);
     
     console.log(`✅ Lesson ${lessonKey} completed`);
@@ -39,7 +36,6 @@ export const LessonTracker = {
   async markIncomplete(lessonKey) {
     const [course, module, lesson] = lessonKey.split('-');
     
-    // Use saveLessonProgress instead
     await Storage.saveLessonProgress(lessonKey, false);
     
     console.log(`❌ Lesson ${lessonKey} marked incomplete`);
@@ -63,7 +59,8 @@ export const LessonTracker = {
   
   async _sendWebhooks(metadata) {
     try {
-      const currentMember = await this.memberstack.getCurrentMember();
+      // Use global memberstack instance
+      const currentMember = await window.$memberstackDom.getCurrentMember();
       
       const memberInfo = {
         email: currentMember?.data?.auth?.email || currentMember?.auth?.email || 'unknown@email.com',
