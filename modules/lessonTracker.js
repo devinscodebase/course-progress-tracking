@@ -14,8 +14,8 @@ export const LessonTracker = {
   async markComplete(lessonKey) {
     const [course, module, lesson] = lessonKey.split('-');
     
-    Storage.setLessonComplete(course, module, lesson);
-    await Storage.save();
+    // Use saveLessonProgress instead
+    await Storage.saveLessonProgress(lessonKey, true);
     
     console.log(`✅ Lesson ${lessonKey} completed`);
     
@@ -39,8 +39,8 @@ export const LessonTracker = {
   async markIncomplete(lessonKey) {
     const [course, module, lesson] = lessonKey.split('-');
     
-    Storage.setLessonIncomplete(course, module, lesson);
-    await Storage.save();
+    // Use saveLessonProgress instead
+    await Storage.saveLessonProgress(lessonKey, false);
     
     console.log(`❌ Lesson ${lessonKey} marked incomplete`);
     EventBus.emit('lesson:incompleted', { lessonKey, course, module, lesson });
