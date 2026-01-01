@@ -1,5 +1,5 @@
 import { Storage } from './storage.js';
-import { EventBus } from './eventBus.js';
+import { LessonTracker } from './lessonTracker.js';
 
 export const UIManager = {
   init() {
@@ -58,14 +58,13 @@ export const UIManager = {
   },
 
   async toggleLesson(lessonKey, completed) {
-    await Storage.saveLessonProgress(lessonKey, completed);
-    
+    // Use LessonTracker instead of Storage directly
     if (completed) {
+      await LessonTracker.markComplete(lessonKey);
       this.markLessonComplete(lessonKey);
-      EventBus.emit('lesson:completed', { lessonKey });
     } else {
+      await LessonTracker.markIncomplete(lessonKey);
       this.markLessonIncomplete(lessonKey);
-      EventBus.emit('lesson:incompleted', { lessonKey });
     }
     
     const data = await Storage.getLessonProgress();
