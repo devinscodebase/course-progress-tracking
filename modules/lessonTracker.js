@@ -9,6 +9,23 @@ export const LessonTracker = {
     // Nothing to initialize
   },
   
+  // Just send webhooks, don't save (saving handled by UIManager)
+  async sendWebhooksOnly(lessonKey) {
+    const [course, module, lesson] = lessonKey.split('-');
+    
+    const metadata = {
+      course,
+      module,
+      lesson,
+      lessonKey,
+      activeCourse: Metadata.getCourseNameGreek(lessonKey),
+      nextLesson: Metadata.getNextLessonTitle(lessonKey)
+    };
+    
+    await this._checkCourseCompletion(course, module, lesson);
+    await this._sendWebhooks(metadata);
+  },
+  
   async markComplete(lessonKey) {
     const [course, module, lesson] = lessonKey.split('-');
     
@@ -25,8 +42,6 @@ export const LessonTracker = {
       nextLesson: Metadata.getNextLessonTitle(lessonKey)
     };
     
-    EventBus.emit('lesson:completed', { lessonKey, ...metadata });
-    
     await this._checkCourseCompletion(course, module, lesson);
     await this._sendWebhooks(metadata);
     
@@ -39,7 +54,6 @@ export const LessonTracker = {
     await Storage.saveLessonProgress(lessonKey, false);
     
     console.log(`❌ Lesson ${lessonKey} marked incomplete`);
-    EventBus.emit('lesson:incompleted', { lessonKey, course, module, lesson });
     
     return { lessonKey, course, module, lesson };
   },
@@ -59,7 +73,6 @@ export const LessonTracker = {
   
   async _sendWebhooks(metadata) {
     try {
-      // Use global memberstack instance
       const currentMember = await window.$memberstackDom.getCurrentMember();
       
       const memberInfo = {
