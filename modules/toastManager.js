@@ -22,21 +22,23 @@ export const ToastManager = {
       }
 
       .toast {
-        background: linear-gradient(135deg, #6c4cf9 0%, #8b5cf6 100%);
+        background: #000000;
+        border: 1px solid #6c4cf9;
         color: white;
         padding: 16px 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(108, 76, 249, 0.3);
-        min-width: 300px;
+        border-radius: 24px;
+        box-shadow: 0 4px 20px rgba(108, 76, 249, 0.2);
+        min-width: 320px;
         max-width: 400px;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 12px;
         pointer-events: auto;
         cursor: pointer;
         transform: translateX(450px);
         opacity: 0;
         transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        font-family: 'Inter', sans-serif;
       }
 
       .toast.show {
@@ -45,8 +47,12 @@ export const ToastManager = {
       }
 
       .toast-icon {
-        font-size: 24px;
+        width: 8px;
+        height: 8px;
+        background: #6c4cf9;
+        border-radius: 50%;
         flex-shrink: 0;
+        margin-top: 6px;
       }
 
       .toast-content {
@@ -54,27 +60,31 @@ export const ToastManager = {
       }
 
       .toast-title {
+        font-family: 'Inter Tight', sans-serif;
         font-weight: 600;
         font-size: 15px;
         margin-bottom: 4px;
+        color: #ffffff;
       }
 
       .toast-message {
         font-size: 13px;
-        opacity: 0.9;
-        line-height: 1.4;
+        color: #CCCCCC;
+        line-height: 1.5;
       }
 
       .toast-close {
-        font-size: 20px;
-        opacity: 0.7;
+        font-size: 18px;
+        color: #7F7F7F;
         cursor: pointer;
-        transition: opacity 0.2s;
+        transition: color 0.2s;
         flex-shrink: 0;
+        line-height: 1;
+        font-weight: 300;
       }
 
       .toast-close:hover {
-        opacity: 1;
+        color: #ffffff;
       }
 
       @media (max-width: 768px) {
@@ -103,15 +113,15 @@ export const ToastManager = {
   setupListeners() {
     EventBus.on('lesson:completed', (data) => {
       this.showSuccess({
-        title: 'Μάθημα Ολοκληρώθηκε! 🎉',
-        message: `Συγχαρητήρια! Προχωρήστε στο επόμενο μάθημα.`
+        title: 'Μάθημα Ολοκληρώθηκε',
+        message: 'Συγχαρητήρια! Προχωρήστε στο επόμενο μάθημα.'
       });
     });
 
     EventBus.on('course:completed', (data) => {
       this.showSuccess({
-        title: 'Κύκλος Μαθημάτων Ολοκληρώθηκε! 🏆',
-        message: `Συγχαρητήρια! Ολοκληρώσατε όλα τα μαθήματα του κύκλου.`
+        title: 'Κύκλος Μαθημάτων Ολοκληρώθηκε',
+        message: 'Συγχαρητήρια! Ολοκληρώσατε όλα τα μαθήματα του κύκλου.'
       });
     });
   },
@@ -120,7 +130,7 @@ export const ToastManager = {
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.innerHTML = `
-      <div class="toast-icon">✅</div>
+      <div class="toast-icon"></div>
       <div class="toast-content">
         <div class="toast-title">${title}</div>
         <div class="toast-message">${message}</div>
@@ -131,13 +141,10 @@ export const ToastManager = {
     const container = document.getElementById('toast-container');
     container.appendChild(toast);
 
-    // Show animation
     setTimeout(() => toast.classList.add('show'), 10);
 
-    // Auto-dismiss
     const timeout = setTimeout(() => this.dismissToast(toast), duration);
 
-    // Click to dismiss
     toast.addEventListener('click', () => {
       clearTimeout(timeout);
       this.dismissToast(toast);
