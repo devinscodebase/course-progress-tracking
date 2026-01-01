@@ -58,15 +58,21 @@ export const UIManager = {
   },
 
   async toggleLesson(lessonKey, completed) {
-    // Use LessonTracker instead of Storage directly
+    // Update UI IMMEDIATELY
     if (completed) {
-      await LessonTracker.markComplete(lessonKey);
       this.markLessonComplete(lessonKey);
     } else {
-      await LessonTracker.markIncomplete(lessonKey);
       this.markLessonIncomplete(lessonKey);
     }
     
+    // Then handle background tasks (storage, webhooks)
+    if (completed) {
+      LessonTracker.markComplete(lessonKey); // Don't await - let it run in background
+    } else {
+      LessonTracker.markIncomplete(lessonKey); // Don't await
+    }
+    
+    // Update progress bar
     const data = await Storage.getLessonProgress();
     this.updateAllProgress(data);
   },

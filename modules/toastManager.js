@@ -12,8 +12,8 @@ export const ToastManager = {
     style.textContent = `
       .toast-container {
         position: fixed;
-        bottom: 20px;
-        right: 20px;
+        bottom: 24px;
+        right: 24px;
         z-index: 10000;
         display: flex;
         flex-direction: column;
@@ -37,7 +37,7 @@ export const ToastManager = {
         cursor: pointer;
         transform: translateX(450px);
         opacity: 0;
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        transition: all 0.3s ease-out;
         font-family: 'Inter', sans-serif;
       }
 
@@ -89,9 +89,9 @@ export const ToastManager = {
 
       @media (max-width: 768px) {
         .toast-container {
-          bottom: 10px;
-          right: 10px;
-          left: 10px;
+          bottom: 16px;
+          right: 16px;
+          left: 16px;
         }
 
         .toast {
@@ -153,6 +153,6 @@ export const ToastManager = {
 
   dismissToast(toast) {
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
+    setTimeout(() => toast.remove(), 300);
   }
 };
