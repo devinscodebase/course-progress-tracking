@@ -1,64 +1,32 @@
 import { Config } from './config.js';
-import { EventBus } from './eventBus.js';
 
 export const Webhooks = {
-  async sendLessonActivity(memberInfo) {
-    const url = Config.webhooks.lessonActivity;
-    if (!url) return false;
-    
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({
-          email: memberInfo.email,
-          firstName: memberInfo.firstName,
-          lastName: memberInfo.lastName,
-          timestamp: Date.now(),
-          activeCourse: memberInfo.activeCourse,
-          nextLesson: memberInfo.nextLesson,
-          lessonKey: memberInfo.lessonKey
-        })
-      });
-      
-      if (response.ok) {
-        console.log('✅ Lesson activity tracked:', memberInfo.lessonKey);
-        EventBus.emit('webhook:lessonActivity:success', memberInfo);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('❌ Lesson activity error:', error);
-      return false;
-    }
+  async sendCourseCompletion(data) {
+    return this._sendToProxy('courseComplete', data);
   },
-  
-  async sendCourseCompletion(memberInfo) {
-    const url = Config.webhooks.courseComplete;
-    if (!url) return false;
-    
+
+  async sendLessonActivity(data) {
+    return this._sendToProxy('lessonActivity', data);
+  },
+
+  async _sendToProxy(endpoint, payload) {
     try {
-      const response = await fetch(url, {
+      const response = await fetch(Config.webhookProxy, {
         method: 'POST',
-        body: JSON.stringify({
-          email: memberInfo.email,
-          firstName: memberInfo.firstName,
-          lastName: memberInfo.lastName,
-          courseCompleted: memberInfo.courseCompleted,
-          lesson: memberInfo.lesson,
-          module: memberInfo.module,
-          completedAt: new Date().toISOString(),
-          memberId: memberInfo.memberId
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint, payload })
       });
       
-      if (response.ok) {
-        console.log('✅ Course completion sent:', memberInfo.courseCompleted);
-        EventBus.emit('webhook:courseComplete:success', memberInfo);
+      const result = await response.json();
+      if (result.success) {
+        console.log(`✅ ${endpoint} sent`);
         return true;
+      } else {
+        console.error(`❌ ${endpoint} failed`);
+        return false;
       }
-      return false;
     } catch (error) {
-      console.error('❌ Course completion error:', error);
+      console.error('❌ Webhook proxy error:', error);
       return false;
     }
   }
