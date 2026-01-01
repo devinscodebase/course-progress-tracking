@@ -1,31 +1,27 @@
+console.log('🚀 Course Progress System v2.0.0');
+
 import { UIManager } from './modules/uiManager.js';
 import { LessonTracker } from './modules/lessonTracker.js';
 import { BadgeSystem } from './modules/badgeSystem.js';
-
-console.log('🚀 Course Progress System v2.0.0');
+import { ToastManager } from './modules/toastManager.js';
 
 async function init() {
-  try {
-    console.log('1️⃣ Starting UIManager.init()...');
-    UIManager.init();
-    
-    console.log('2️⃣ Starting renderExistingProgress()...');
-    await UIManager.renderExistingProgress();
-    
-    console.log('3️⃣ Starting LessonTracker.init()...');
-    LessonTracker.init();
-    
-    console.log('4️⃣ Starting BadgeSystem.init()...');
-    BadgeSystem.init();
-    
-    console.log('✅ System ready');
-  } catch (error) {
-    console.error('❌ Initialization failed:', error);
-  }
+  console.log('1️⃣ Starting UIManager.init()...');
+  UIManager.init();
+
+  console.log('2️⃣ Starting renderExistingProgress()...');
+  await UIManager.renderExistingProgress();
+
+  console.log('3️⃣ Starting LessonTracker.init()...');
+  LessonTracker.init();
+
+  console.log('4️⃣ Starting BadgeSystem.init()...');
+  BadgeSystem.init();
+
+  console.log('5️⃣ Starting ToastManager.init()...');
+  ToastManager.init();
+
+  console.log('✅ System ready');
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
+init();
