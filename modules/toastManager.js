@@ -22,12 +22,12 @@ export const ToastManager = {
       }
 
       .toast {
-        background: #000000;
-        border: 1px solid #6c4cf9;
+        background: #191919;
+        border: 1px solid rgba(255, 255, 255, 0.1);
         color: white;
         padding: 16px 20px;
         border-radius: 24px;
-        box-shadow: 0 4px 20px rgba(108, 76, 249, 0.2);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         min-width: 320px;
         max-width: 400px;
         display: flex;
@@ -49,7 +49,7 @@ export const ToastManager = {
       .toast-icon {
         width: 8px;
         height: 8px;
-        background: #6c4cf9;
+        background: #2d00f7;
         border-radius: 50%;
         flex-shrink: 0;
         margin-top: 6px;
