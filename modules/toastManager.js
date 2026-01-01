@@ -12,7 +12,7 @@ export const ToastManager = {
     style.textContent = `
       .toast-container {
         position: fixed;
-        top: 20px;
+        bottom: 20px;
         right: 20px;
         z-index: 10000;
         display: flex;
@@ -79,7 +79,7 @@ export const ToastManager = {
 
       @media (max-width: 768px) {
         .toast-container {
-          top: 10px;
+          bottom: 10px;
           right: 10px;
           left: 10px;
         }
