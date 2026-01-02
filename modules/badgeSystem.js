@@ -26,9 +26,16 @@ export const BadgeSystem = {
 
   getTotalLessons(courseId) {
     const buttons = document.querySelectorAll('[ms-code-mark-complete]');
-    return Array.from(buttons).filter(btn => 
-      btn.getAttribute('ms-code-mark-complete').toLowerCase().startsWith(courseId.toLowerCase() + '-')
-    ).length;
+    const uniqueKeys = new Set();
+    
+    Array.from(buttons).forEach(btn => {
+      const key = btn.getAttribute('ms-code-mark-complete');
+      if (key && key.toLowerCase().startsWith(courseId.toLowerCase() + '-')) {
+        uniqueKeys.add(key.toLowerCase());
+      }
+    });
+    
+    return uniqueKeys.size;
   },
 
   updateUI(progress, completed, total) {

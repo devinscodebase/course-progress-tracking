@@ -104,13 +104,19 @@ export const UIManager = {
   },
 
   renderProgressUI(data) {
-    // Count totals for progress tracking
+    // Count totals for progress tracking (deduplicate lesson keys)
     const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
     const courseCounts = {};
+    const seenKeys = new Set();
     
     allButtons.forEach(btn => {
       const key = btn.getAttribute('ms-code-mark-complete');
       if (!key) return;
+      
+      // Skip duplicate lesson keys (e.g., sidebar + main button for same lesson)
+      const keyLower = key.toLowerCase();
+      if (seenKeys.has(keyLower)) return;
+      seenKeys.add(keyLower);
       
       const courseKey = key.split('-')[0].toLowerCase();
       if (!courseCounts[courseKey]) {
@@ -297,12 +303,18 @@ export const UIManager = {
 
   recalculateProgress(courseKey) {
     const allButtons = document.querySelectorAll('[ms-code-mark-complete]');
+    const seenKeys = new Set();
     let completed = 0;
     let total = 0;
     
     allButtons.forEach(btn => {
       const key = btn.getAttribute('ms-code-mark-complete');
       if (key && key.toLowerCase().startsWith(courseKey.toLowerCase() + '-')) {
+        // Skip duplicate lesson keys
+        const keyLower = key.toLowerCase();
+        if (seenKeys.has(keyLower)) return;
+        seenKeys.add(keyLower);
+        
         total++;
         if (btn.classList.contains('yes')) {
           completed++;
