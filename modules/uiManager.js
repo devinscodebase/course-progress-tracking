@@ -1,5 +1,6 @@
 import { Storage } from './storage.js';
 import { EventBus } from './eventBus.js';
+import { NextLessonDetector } from './nextLessonDetector.js';
 
 export const UIManager = {
   init() {
@@ -124,6 +125,8 @@ export const UIManager = {
       if (!course || typeof course !== 'object' || Array.isArray(course)) return;
       
       Object.keys(course).forEach(moduleKey => {
+        if (moduleKey === 'nextLessonUrl') return; // Skip nextLessonUrl
+        
         const module = course[moduleKey];
         if (!module || typeof module !== 'object' || Array.isArray(module)) return;
         
@@ -178,6 +181,11 @@ export const UIManager = {
         Storage.saveLessonProgress(lessonKey, completed),
         new Promise(resolve => setTimeout(resolve, 300)) // 300ms feels responsive
       ]);
+      
+      // Update next lesson URL only when completing
+      if (completed) {
+        await NextLessonDetector.init();
+      }
       
       // Update UI
       if (completed) {
