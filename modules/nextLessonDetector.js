@@ -6,7 +6,7 @@ export const NextLessonDetector = {
     const courseId = this.getCurrentCourseId();
     if (!courseId) return;
 
-    const nextLessonUrl = await this.findNextIncompleteLesson(courseId);
+    const nextLessonUrl = this.findNextIncompleteLesson(courseId);
     if (nextLessonUrl) {
       await this.storeNextLessonUrl(courseId, nextLessonUrl);
     }
@@ -28,67 +28,34 @@ export const NextLessonDetector = {
     return null;
   },
 
-  async findNextIncompleteLesson(courseId) {
-    // Get completion data from Storage
-    const data = await Storage.getLessonProgress();
-    const courseData = data[courseId] || {};
+  findNextIncompleteLesson(courseId) {
+    // Get all lesson containers (parent divs that contain both button and link)
+    const lessonContainers = document.querySelectorAll('.collection-item-2.w-dyn-item');
     
-    // Get all lesson links in DOM order
-    const lessonLinks = document.querySelectorAll('[data-lesson-link]');
+    console.log(`🔍 Checking ${lessonContainers.length} lessons for first incomplete...`);
     
-    console.log(`🔍 Checking ${lessonLinks.length} lessons for first incomplete...`);
-    
-    // Find FIRST incomplete lesson
-    for (const link of lessonLinks) {
-      const lessonUrl = link.getAttribute('href');
-      const lessonId = this.extractLessonIdFromUrl(lessonUrl);
+    // Loop through each container
+    for (const container of lessonContainers) {
+      // Find the completion button in this container
+      const button = container.querySelector(`[ms-code-mark-complete^="${courseId}-"]`);
+      if (!button) continue;
       
-      if (!lessonId) continue;
+      // Find the link in this container
+      const link = container.querySelector('[data-lesson-link="true"]');
+      if (!link) continue;
       
-      // Check if this lesson is complete
-      const isComplete = this.isLessonComplete(courseData, lessonId);
+      // Check if incomplete (no 'yes' class)
+      const isComplete = button.classList.contains('yes');
       
       if (!isComplete) {
-        console.log(`✅ Found first incomplete lesson: ${lessonId}`);
+        const lessonKey = button.getAttribute('ms-code-mark-complete');
+        console.log(`✅ Found first incomplete lesson: ${lessonKey} at ${link.href}`);
         return link.href;
       }
     }
     
     console.log('🎉 All lessons complete!');
     return null;
-  },
-
-  extractLessonIdFromUrl(url) {
-    // Extract lesson slug from URL
-    // Example: /lessons/blockchain-kai-kryptonomismata-apo-to-a-o---lesson-1
-    // Returns: lesson1 or the last part
-    
-    const parts = url.split('/').pop().split('---');
-    if (parts.length > 1) {
-      // Get the part after last "---" and clean it
-      return parts[parts.length - 1].replace(/[^a-z0-9]/gi, '').toLowerCase();
-    }
-    
-    return null;
-  },
-
-  isLessonComplete(courseData, lessonId) {
-    // Check all modules for this lesson
-    for (const moduleKey in courseData) {
-      if (moduleKey === 'nextLessonUrl') continue;
-      
-      const module = courseData[moduleKey];
-      if (typeof module !== 'object') continue;
-      
-      for (const lessonKey in module) {
-        // Match lesson ID (case insensitive)
-        if (lessonKey.toLowerCase().includes(lessonId.toLowerCase())) {
-          return module[lessonKey].completed === true;
-        }
-      }
-    }
-    
-    return false; // Not found = incomplete
   },
 
   async storeNextLessonUrl(courseId, url) {
