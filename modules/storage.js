@@ -144,10 +144,15 @@ export const Storage = {
     return lesson && lesson.completed === true;
   },
 
-  countCompletedLessons(data) {
+  countCompletedLessons(data, courseId = null) {
     let count = 0;
     
     for (const courseKey in data) {
+      // If courseId filter is provided, skip non-matching courses
+      if (courseId && courseKey.toLowerCase() !== courseId.toLowerCase()) {
+        continue;
+      }
+      
       const course = data[courseKey];
       if (typeof course !== 'object') continue;
       

@@ -17,7 +17,7 @@ export const BadgeSystem = {
   },
 
   updateBadge(courseId, data) {
-    const completed = Storage.countCompletedLessons(courseId, data);
+    const completed = Storage.countCompletedLessons(data, courseId);
     const total = this.getTotalLessons(courseId);
     const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
