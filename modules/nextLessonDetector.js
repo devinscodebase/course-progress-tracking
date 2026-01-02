@@ -57,15 +57,7 @@ export const NextLessonDetector = {
   },
 
   async storeNextLessonUrl(courseId, url) {
-    const data = await Storage.getLessonProgress();
-    
-    if (!data[courseId]) {
-      data[courseId] = {};
-    }
-
-    data[courseId].nextLessonUrl = url;
-    
-    await Storage.storeNextLessonUrl(courseId, nextLessonUrl);
-
+    await Storage.storeNextLessonUrl(courseId, url);
+    console.log(`✅ Stored nextLessonUrl for ${courseId}:`, url);
   }
 };
