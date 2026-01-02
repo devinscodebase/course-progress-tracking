@@ -179,15 +179,10 @@ export const UIManager = {
       // Parallel: Save + artificial UX delay
       await Promise.all([
         Storage.saveLessonProgress(lessonKey, completed),
-        new Promise(resolve => setTimeout(resolve, 300)) // 300ms feels responsive
+        new Promise(resolve => setTimeout(resolve, 300))
       ]);
       
-      // Update next lesson URL only when completing
-      if (completed) {
-        await NextLessonDetector.init();
-      }
-      
-      // Update UI
+      // Update UI FIRST
       if (completed) {
         this.markLessonComplete(lessonKey);
       } else {
@@ -210,6 +205,13 @@ export const UIManager = {
       // Fire-and-forget webhooks (non-blocking)
       if (completed) {
         this.sendWebhooksAsync(lessonKey);
+      }
+      
+      // MOVED TO END: Update next lesson URL AFTER everything else
+      if (completed) {
+        setTimeout(() => {
+          NextLessonDetector.init();
+        }, 100);
       }
       
     } catch (error) {

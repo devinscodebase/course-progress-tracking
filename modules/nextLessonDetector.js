@@ -15,7 +15,7 @@ export const NextLessonDetector = {
   getCurrentCourseId() {
     const courseIdentifier = document.querySelector('[data-course-id]');
     if (courseIdentifier) {
-      return courseIdentifier.getAttribute('data-course-id').toLowerCase();
+      return courseIdentifier.getAttribute('data-course-id');  // Keep original case
     }
     
     const bodyClasses = document.body.className;
@@ -36,7 +36,7 @@ export const NextLessonDetector = {
     
     // Loop through each container
     for (const container of lessonContainers) {
-      // Find the completion button in this container
+      // Find the completion button in this container (case-sensitive)
       const button = container.querySelector(`[ms-code-mark-complete^="${courseId}-"]`);
       if (!button) continue;
       
@@ -59,7 +59,7 @@ export const NextLessonDetector = {
   },
 
   async storeNextLessonUrl(courseId, url) {
-    await Storage.storeNextLessonUrl(courseId, url);
+    await Storage.storeNextLessonUrl(courseId.toLowerCase(), url);
     console.log(`✅ Stored nextLessonUrl for ${courseId}:`, url);
   }
 };

@@ -101,6 +101,9 @@ export const Storage = {
     
     allData.lessonProgress = lessonProgress;
     await this.updateMemberJSON(allData);
+    
+    // DON'T clear cache here - it breaks progress tracking
+    // this.clearCache();
   },
 
   async migrateOldData(fullData, lessonProgressData) {
