@@ -1,4 +1,5 @@
 import { Storage } from './storage.js';
+import { Config } from './config.js';
 
 export const DashboardButtons = {
   async init() {
@@ -18,20 +19,28 @@ export const DashboardButtons = {
   updateCourseButton(card, courseId, data) {
     const courseData = data?.[courseId];
     const nextLessonUrl = courseData?.nextLessonUrl;
+    const hasProgress = this.hasAnyProgress(courseData);
 
     // Find the "View Lessons" button using custom attribute
     const viewButton = card.querySelector('[data-view-lessons-btn]');
     
-    if (viewButton && nextLessonUrl) {
-      // Update button to point to next lesson
+    if (!viewButton) return;
+
+    // If we have a stored nextLessonUrl, use it
+    if (nextLessonUrl) {
       viewButton.href = nextLessonUrl;
-      
-      // Optional: Change button text if there's progress
-      const hasProgress = this.hasAnyProgress(courseData);
-      if (hasProgress) {
-        viewButton.textContent = 'Συνέχισε το Μάθημα'; // "Continue Lesson"
-      }
+      viewButton.textContent = 'Συνέχισε το Μάθημα';
+      return;
     }
+
+    // If user has progress but no nextLessonUrl (legacy data), 
+    // keep button text updated but leave original href
+    if (hasProgress) {
+      viewButton.textContent = 'Συνέχισε το Μάθημα';
+      // Button will use whatever href is set in Webflow (first lesson or course overview)
+    }
+    
+    // If no progress, keep default text and href
   },
 
   hasAnyProgress(courseData) {
