@@ -4,6 +4,8 @@ import { UIManager } from './modules/uiManager.js';
 import { LessonTracker } from './modules/lessonTracker.js';
 import { BadgeSystem } from './modules/badgeSystem.js';
 import { ToastManager } from './modules/toastManager.js';
+import { NextLessonDetector } from './modules/nextLessonDetector.js';
+import { SidebarScroller } from './modules/sidebarScroller.js';
 
 async function init() {
   console.log('1️⃣ Starting UIManager.init()...');
@@ -20,6 +22,12 @@ async function init() {
 
   console.log('5️⃣ Starting ToastManager.init()...');
   ToastManager.init();
+
+  console.log('6️⃣ Starting NextLessonDetector.init()...');
+  await NextLessonDetector.init();
+
+  console.log('7️⃣ Starting SidebarScroller.init()...');
+  SidebarScroller.init();
 
   console.log('✅ System ready');
 }
