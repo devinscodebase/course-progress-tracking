@@ -65,6 +65,7 @@ export const NextLessonDetector = {
 
     data[courseId].nextLessonUrl = url;
     
-    await Storage.saveLessonProgress(data);
+    await Storage.storeNextLessonUrl(courseId, nextLessonUrl);
+
   }
 };

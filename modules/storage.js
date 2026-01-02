@@ -13,6 +13,26 @@ export const Storage = {
     this.cacheExpiry = null;
   },
 
+  async getMemberJSON() {
+    try {
+      const result = await window.$memberstackDom.getMemberJSON();
+      return result?.data || result || {};
+    } catch (error) {
+      console.error('Error fetching member JSON:', error);
+      return {};
+    }
+  },
+
+  async updateMemberJSON(json) {
+    try {
+      await window.$memberstackDom.updateMemberJSON({ json });
+      this.clearCache();
+    } catch (error) {
+      console.error('Error updating member JSON:', error);
+      throw error;
+    }
+  },
+
   async getLessonProgress() {
     if (this.cache && this.cacheExpiry && Date.now() < this.cacheExpiry) {
       console.log('📦 Using Memberstack cache');
@@ -22,11 +42,11 @@ export const Storage = {
     if (!this.ms) this.init();
 
     try {
-      const response = await this.ms.getMemberJSON();
-      let data = response.data?.lessonProgress || {};
+      const allData = await this.getMemberJSON();
+      let data = allData.lessonProgress || {};
 
       // Auto-migrate old data structure
-      data = await this.migrateOldData(response.data, data);
+      data = await this.migrateOldData(allData, data);
 
       this.cache = data;
       this.cacheExpiry = Date.now() + this.CACHE_TTL;
@@ -38,34 +58,49 @@ export const Storage = {
     }
   },
 
-  async saveLessonProgress(data) {
-    const normalized = {};
+  // ORIGINAL signature that uiManager.js expects
+  async saveLessonProgress(lessonKey, completed) {
+    const [course, module, lesson] = lessonKey.split('-');
     
-    for (const courseKey in data) {
-      normalized[courseKey] = {};
-      
-      for (const moduleKey in data[courseKey]) {
-        const moduleData = data[courseKey][moduleKey];
-        
-        // Handle string properties (like nextLessonUrl) - just copy them
-        if (typeof moduleData === 'string') {
-          normalized[courseKey][moduleKey] = moduleData;
-          continue;
-        }
-        
-        // Handle object properties (actual modules with lessons)
-        if (typeof moduleData === 'object' && moduleData !== null) {
-          normalized[courseKey][moduleKey] = {};
-          
-          for (const lessonKey in moduleData) {
-            normalized[courseKey][moduleKey][lessonKey] = moduleData[lessonKey];
-          }
-        }
-      }
+    // Fetch current data
+    const allData = await this.getMemberJSON();
+    const lessonProgress = allData.lessonProgress || {};
+    
+    const courseKey = course.toLowerCase();
+    const moduleKey = module.toLowerCase();
+    const lessonKeyLower = lesson.toLowerCase();
+    
+    if (!lessonProgress[courseKey]) {
+      lessonProgress[courseKey] = {};
+    }
+    if (!lessonProgress[courseKey][moduleKey]) {
+      lessonProgress[courseKey][moduleKey] = {};
     }
     
-    await this.ms.updateMemberJSON({ json: { lessonProgress: normalized } });
-    this.clearCache();
+    lessonProgress[courseKey][moduleKey][lessonKeyLower] = {
+      completed,
+      completedAt: new Date().toISOString()
+    };
+    
+    allData.lessonProgress = lessonProgress;
+    await this.updateMemberJSON(allData);
+  },
+
+  // NEW method for NextLessonDetector to store nextLessonUrl
+  async storeNextLessonUrl(courseId, nextLessonUrl) {
+    const allData = await this.getMemberJSON();
+    const lessonProgress = allData.lessonProgress || {};
+    
+    const courseKey = courseId.toLowerCase();
+    
+    if (!lessonProgress[courseKey]) {
+      lessonProgress[courseKey] = {};
+    }
+    
+    lessonProgress[courseKey].nextLessonUrl = nextLessonUrl;
+    
+    allData.lessonProgress = lessonProgress;
+    await this.updateMemberJSON(allData);
   },
 
   async migrateOldData(fullData, lessonProgressData) {
@@ -88,7 +123,7 @@ export const Storage = {
     // If we migrated, save the new structure and clean up old data
     if (migrated) {
       console.log('🔄 Migrating old data structure...');
-      await this.ms.updateMemberJSON({
+      await window.$memberstackDom.updateMemberJSON({
         json: {
           lessonProgress: lessonProgressData,
           course1: null,
@@ -96,6 +131,7 @@ export const Storage = {
           course3: null
         }
       });
+      this.clearCache();
     }
 
     return lessonProgressData;
